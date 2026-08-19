@@ -21,7 +21,7 @@ def build():
         print("Installing PyInstaller...")
         subprocess.run([sys.executable, "-m", "pip", "install", "pyinstaller"], check=True)
 
-    root_dir = Path(__file__).resolve().parent
+    root_dir = Path(__file__).resolve().parent.parent
     main_script = root_dir / "main.py"
     icon_path = root_dir / "assets" / "icon.ico"
 

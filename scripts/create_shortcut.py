@@ -12,7 +12,7 @@ def create_desktop_shortcut():
     standard_desktop = Path(os.environ["USERPROFILE"]) / "Desktop"
     desktop = onedrive_desktop if onedrive_desktop.exists() else standard_desktop
 
-    project_dir = Path(__file__).resolve().parent
+    project_dir = Path(__file__).resolve().parent.parent
     exe_target = project_dir / "dist" / "JARVIS" / "JARVIS.exe"
     shortcut_path = desktop / "JARVIS AI.lnk"
 

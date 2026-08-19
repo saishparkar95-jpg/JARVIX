@@ -11,7 +11,7 @@ import win32com.client
 
 def enable_windows_startup():
     startup_dir = Path(os.environ["APPDATA"]) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
-    project_dir = Path(__file__).resolve().parent
+    project_dir = Path(__file__).resolve().parent.parent
     vbs_target = project_dir / "Run_JARVIS.vbs"
     shortcut_path = startup_dir / "JARVIS AI.lnk"
 

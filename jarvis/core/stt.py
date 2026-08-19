@@ -1,7 +1,6 @@
 """
 jarvis/core/stt.py
-Continuous Real-Time Streaming Speech-to-Text engine.
-Functions like Google Assistant / Alexa with continuous listening, ring buffer, and zero button clicks needed.
+Adaptive real-time Speech-to-Text engine with auto-calibrated noise floor.
 """
 
 import io
@@ -21,23 +20,25 @@ except ImportError:
 
 
 class STTEngine:
-    """Continuous stream audio capture and speech recognition engine."""
+    """Continuous stream audio capture and speech recognition engine with adaptive noise floor."""
 
     def __init__(self):
         self.recognizer = sr.Recognizer()
         self.recognizer.dynamic_energy_threshold = True
         self.sample_rate = 16000
-        self.chunk_duration = 0.05  # 50ms chunks for instant responsiveness
+        self.chunk_duration = 0.05
         self.chunk_samples = int(self.sample_rate * self.chunk_duration)
 
-        # Pre-roll buffer (0.4s) to capture the start of speech without clipping
-        self.pre_buffer = collections.deque(maxlen=8)
+        self.pre_buffer = collections.deque(maxlen=10)
         self.stream = None
         self.is_active = True
-        self.microphone_available = self._check_microphone()
+        self.ambient_energy = 0.005
+        self.speech_threshold = 0.012
 
+        self.microphone_available = self._check_microphone()
         if self.microphone_available and HAS_SOUNDDEVICE:
             self._start_stream()
+            self._calibrate_ambient_noise()
 
     def _check_microphone(self) -> bool:
         """Verifies if microphone hardware is accessible."""
@@ -52,7 +53,7 @@ class STTEngine:
         return False
 
     def _start_stream(self):
-        """Starts a persistent, low-latency audio input stream."""
+        """Starts a persistent low-latency audio input stream."""
         try:
             self.stream = sd.InputStream(
                 samplerate=self.sample_rate,
@@ -65,10 +66,28 @@ class STTEngine:
             print(f"[\033[93mStream notice\033[0m]: {e}")
             self.stream = None
 
-    def listen_continuous(self, silence_threshold=0.006, max_duration=10, silence_limit=1.1) -> str:
+    def _calibrate_ambient_noise(self):
+        """Measures ambient room sound for 0.4s to set adaptive sensitivity."""
+        if not self.stream:
+            return
+        energies = []
+        for _ in range(8):
+            try:
+                chunk, _ = self.stream.read(self.chunk_samples)
+                audio_data = chunk[:, 0]
+                energies.append(float(np.sqrt(np.mean(audio_data**2))))
+            except Exception:
+                pass
+        if energies:
+            self.ambient_energy = max(0.002, float(np.mean(energies)))
+            # Adaptive threshold: 2.2x ambient noise floor, clamped between 0.010 and 0.040
+            self.speech_threshold = max(0.010, min(0.040, self.ambient_energy * 2.2))
+            print(f"\033[90m[Microphone Calibrated: Ambient={self.ambient_energy:.4f}, Threshold={self.speech_threshold:.4f}]\033[0m")
+
+    def listen_continuous(self, max_duration=9, silence_limit=0.9) -> str:
         """
-        Continuously reads the live audio stream.
-        Triggers automatically when user speaks (like Google Assistant) without pressing any buttons.
+        Continuously reads the live audio stream with adaptive noise detection.
+        Triggers automatically when voice is spoken.
         """
         if config.INPUT_MODE == "text" or not self.stream:
             return self._listen_text()
@@ -78,7 +97,6 @@ class STTEngine:
         silence_time = 0.0
         start_time = time.time()
 
-        # Restart stream if closed
         if not self.stream.active:
             try:
                 self.stream.start()
@@ -92,11 +110,10 @@ class STTEngine:
                 energy = float(np.sqrt(np.mean(audio_data**2)))
 
                 if not started_speaking:
-                    # Keep rolling pre-buffer
                     self.pre_buffer.append(audio_data)
 
-                    # Trigger as soon as voice energy is detected
-                    if energy > silence_threshold:
+                    # Speech detected
+                    if energy > self.speech_threshold:
                         started_speaking = True
                         frames.extend(list(self.pre_buffer))
                         frames.append(audio_data)
@@ -104,7 +121,8 @@ class STTEngine:
                         start_time = time.time()
                 else:
                     frames.append(audio_data)
-                    if energy < silence_threshold:
+                    # Use lower threshold to detect pause / silence
+                    if energy < (self.speech_threshold * 0.75):
                         silence_time += self.chunk_duration
                         if silence_time >= silence_limit:
                             break
@@ -142,12 +160,12 @@ class STTEngine:
             with sr.AudioFile(io.BytesIO(wav_bytes)) as source:
                 audio = self.recognizer.record(source)
 
-            # Try en-IN first (recognizes Indian English, Hinglish, and tech keywords accurately)
+            # Try en-IN first
             try:
                 text = self.recognizer.recognize_google(audio, language="en-IN")
                 return text.strip()
             except sr.UnknownValueError:
-                # Fallback to Hindi
+                # Fallback to hi-IN
                 try:
                     text = self.recognizer.recognize_google(audio, language="hi-IN")
                     return text.strip()
