@@ -160,6 +160,11 @@ class MainWindow(QMainWindow):
         # 4. Start Background Workers
         self._start_workers()
 
+        # 5. Setup Floating Google Assistant Overlay Bar
+        from jarvis.ui.assistant_bar import GoogleAssistantBar
+        self.assistant_bar = GoogleAssistantBar(self.voice_worker)
+        self.assistant_bar.show()
+
         if start_minimized:
             self.hide()
 
