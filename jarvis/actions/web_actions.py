@@ -12,19 +12,26 @@ import config
 POPULAR_SITES = {
     "google": "https://www.google.com",
     "youtube": "https://www.youtube.com",
+    "whatsapp": "https://web.whatsapp.com",
+    "web whatsapp": "https://web.whatsapp.com",
+    "whatsapp web": "https://web.whatsapp.com",
     "github": "https://www.github.com",
     "stackoverflow": "https://stackoverflow.com",
     "reddit": "https://www.reddit.com",
     "wikipedia": "https://www.wikipedia.org",
-    "chatgpt": "https://chat.openai.com",
+    "chatgpt": "https://chatgpt.com",
     "gemini": "https://gemini.google.com",
     "netflix": "https://www.netflix.com",
     "amazon": "https://www.amazon.com",
     "twitter": "https://www.twitter.com",
     "x": "https://www.x.com",
+    "instagram": "https://www.instagram.com",
+    "facebook": "https://www.facebook.com",
+    "linkedin": "https://www.linkedin.com",
     "gmail": "https://mail.google.com",
     "maps": "https://maps.google.com",
-    "spotify": "https://open.spotify.com"
+    "spotify": "https://open.spotify.com",
+    "canva": "https://www.canva.com"
 }
 
 

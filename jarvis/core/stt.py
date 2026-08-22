@@ -84,7 +84,7 @@ class STTEngine:
             self.speech_threshold = max(0.010, min(0.040, self.ambient_energy * 2.2))
             print(f"\033[90m[Microphone Calibrated: Ambient={self.ambient_energy:.4f}, Threshold={self.speech_threshold:.4f}]\033[0m")
 
-    def listen_continuous(self, max_duration=9, silence_limit=0.9) -> str:
+    def listen_continuous(self, max_duration=8, silence_limit=0.55, silence_threshold: Optional[float] = None, **kwargs) -> str:
         """
         Continuously reads the live audio stream with adaptive noise detection.
         Triggers automatically when voice is spoken.
@@ -96,6 +96,7 @@ class STTEngine:
         started_speaking = False
         silence_time = 0.0
         start_time = time.time()
+        effective_threshold = silence_threshold if silence_threshold is not None else self.speech_threshold
 
         if not self.stream.active:
             try:
@@ -113,7 +114,7 @@ class STTEngine:
                     self.pre_buffer.append(audio_data)
 
                     # Speech detected
-                    if energy > self.speech_threshold:
+                    if energy > effective_threshold:
                         started_speaking = True
                         frames.extend(list(self.pre_buffer))
                         frames.append(audio_data)
@@ -122,7 +123,7 @@ class STTEngine:
                 else:
                     frames.append(audio_data)
                     # Use lower threshold to detect pause / silence
-                    if energy < (self.speech_threshold * 0.75):
+                    if energy < (effective_threshold * 0.75):
                         silence_time += self.chunk_duration
                         if silence_time >= silence_limit:
                             break
@@ -151,6 +152,19 @@ class STTEngine:
 
         wav_io.seek(0)
         return self._transcribe(wav_io.read())
+
+    def listen_for_wake_word(self, wake_detector=None) -> Tuple[bool, Optional[str]]:
+        """Listens for wake words (compatible with CLI assistant)."""
+        text = self.listen_continuous()
+        if not text:
+            return False, None
+        if wake_detector:
+            return wake_detector.check_wake_word(text)
+        return True, text
+
+    def listen_command(self, max_duration: int = 9) -> str:
+        """Listens for a user command after activation (compatible with CLI assistant)."""
+        return self.listen_continuous(max_duration=max_duration)
 
     def _transcribe(self, wav_bytes: bytes) -> str:
         """Transcribes audio using Google Speech API with Indian accent & Hindi support."""

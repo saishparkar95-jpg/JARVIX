@@ -3,8 +3,10 @@ SpeechRecognition>=3.10.0
 sounddevice>=0.5.0
 numpy>=1.24.0
 
-# Text-to-Speech (Offline Windows SAPI5)
+# Text-to-Speech (Neural Hindi & Offline Windows SAPI5)
 pyttsx3>=2.90
+edge-tts>=7.0.0
+aiohttp>=3.9.0
 
 # Automation, System & Screenshots
 pyautogui>=0.9.54

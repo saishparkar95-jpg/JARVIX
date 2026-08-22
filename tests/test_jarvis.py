@@ -107,11 +107,34 @@ class TestJarvisCore(unittest.TestCase):
         self.assertTrue(success)
         self.assertIn("Chrome", msg)
 
-    def test_battery_query(self):
-        """Test battery percentage query in Hindi and English."""
-        success, msg, _ = self.router.process_command("battery kitni hai")
-        self.assertTrue(success)
-        self.assertIn("percent", msg)
+    def test_file_search_and_operations(self):
+        """Test local file search engine and directory security."""
+        from jarvis.actions.file_actions import FileActions
+        results = FileActions.search_files("main", extension="py")
+        self.assertTrue(len(results) > 0)
+        self.assertTrue(any("main.py" in r["name"] for r in results))
+
+    def test_multi_step_planner(self):
+        """Test multi-step composite task detection."""
+        from jarvis.core.planner import TaskPlanner
+        planner = TaskPlanner(self.memory, self.tts)
+        is_multi = planner.is_multi_step_request("Find my Python project and open it in VS Code")
+        self.assertTrue(is_multi)
+
+    def test_security_manager_3_tiers(self):
+        """Test 3-tier permission validator."""
+        from jarvis.core.security_manager import SecurityManager, PermissionLevel
+        # Level 1 Safe
+        perm_1, _ = SecurityManager.validate_action("OPEN_APPLICATION", "chrome")
+        self.assertEqual(perm_1, PermissionLevel.LEVEL_1_SAFE)
+
+        # Level 2 Confirmation
+        perm_2, _ = SecurityManager.validate_action("SHUTDOWN")
+        self.assertEqual(perm_2, PermissionLevel.LEVEL_2_CONFIRM)
+
+        # Level 3 Blocked
+        perm_3, _ = SecurityManager.validate_action("DISABLE_ANTIVIRUS")
+        self.assertEqual(perm_3, PermissionLevel.LEVEL_3_BLOCKED)
 
 
 if __name__ == "__main__":

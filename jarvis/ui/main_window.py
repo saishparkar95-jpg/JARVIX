@@ -8,7 +8,7 @@ from datetime import datetime
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, QLabel,
     QPushButton, QScrollArea, QFrame, QProgressBar, QMessageBox,
-    QApplication, QDialog, QTextEdit
+    QApplication, QDialog, QTextEdit, QSystemTrayIcon
 )
 from PySide6.QtGui import QIcon, QFont, QKeySequence, QShortcut
 from PySide6.QtCore import Qt, Slot

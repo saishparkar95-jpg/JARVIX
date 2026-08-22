@@ -47,7 +47,7 @@ class VoiceWorker(QThread):
                     continue
 
                 # Continuous stream listen: triggers automatically when speech is heard
-                spoken_text = self.stt.listen_continuous(silence_threshold=0.006)
+                spoken_text = self.stt.listen_continuous()
 
                 if not spoken_text or not self.is_running:
                     continue
@@ -62,7 +62,7 @@ class VoiceWorker(QThread):
                 if has_wake:
                     self.state_changed.emit(config.STATE_LISTENING, "Wake word detected!")
                     self.wake_detector.play_activation_sound()
-                    command_to_run = extracted_cmd if extracted_cmd else self.stt.listen_continuous(silence_threshold=0.006)
+                    command_to_run = extracted_cmd if extracted_cmd else self.stt.listen_continuous()
                 elif self.manual_mic_triggered:
                     self.manual_mic_triggered = False
                     self.state_changed.emit(config.STATE_LISTENING, "Listening...")
@@ -89,7 +89,6 @@ class VoiceWorker(QThread):
                 self.memory.log_conversation(config.USER_NAME, command_to_run)
 
                 self.state_changed.emit(config.STATE_THINKING, f"Analyzing: \"{command_to_run}\"")
-                time.sleep(0.1)
 
                 self.state_changed.emit(config.STATE_EXECUTING, "Executing action...")
                 success, response_text, should_exit = self.router.process_command(command_to_run)

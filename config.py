@@ -25,9 +25,9 @@ AI_PROVIDER = os.getenv("AI_PROVIDER", "openai").lower()
 AI_MODEL = os.getenv("AI_MODEL", "gpt-4o-mini")
 
 # Voice Engine Settings
-VOICE_RATE = int(os.getenv("JARVIS_VOICE_RATE", "175"))
+VOICE_RATE = int(os.getenv("JARVIS_VOICE_RATE", "180"))
 VOICE_VOLUME = float(os.getenv("JARVIS_VOICE_VOLUME", "1.0"))
-VOICE_GENDER = os.getenv("JARVIS_VOICE_GENDER", "male").lower()
+VOICE_GENDER = os.getenv("JARVIS_VOICE_GENDER", "female").lower()
 
 # Input Mode: "voice" or "text"
 INPUT_MODE = os.getenv("INPUT_MODE", "voice").lower()
@@ -37,7 +37,7 @@ LANG_AUTO = "auto"
 LANG_EN = "en"
 LANG_HI = "hi"
 LANG_HINGLISH = "hinglish"
-DEFAULT_LANGUAGE = os.getenv("JARVIS_LANGUAGE", LANG_AUTO).lower()
+DEFAULT_LANGUAGE = os.getenv("JARVIS_LANGUAGE", LANG_EN).lower()
 
 # Wake Word & Voice Pipeline Settings
 WAKE_WORDS = ["hey jarvis", "jarvis", "oye jarvis", "ok jarvis", "namaste jarvis"]
@@ -59,6 +59,10 @@ ALLOWED_BASE_DIRS = [
     Path.home() / "Downloads",
     BASE_DIR
 ]
+
+# Safety Settings
+SAFE_MODE = os.getenv("SAFE_MODE", "true").lower() == "true"
+REQUIRE_CONFIRMATION = os.getenv("REQUIRE_CONFIRMATION", "true").lower() == "true"
 
 # Storage Paths
 DATABASE_PATH = BASE_DIR / "jarvis_memory.db"
